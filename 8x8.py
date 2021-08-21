@@ -16,7 +16,7 @@ from matplotlib import pyplot as plt
 plt.style.use("seaborn")
 from numpy import inf
 
-
+#MAIN DATAFRAME###############################################################
 
 df_main = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Call_Records_2021-01-01-2021-06-30.csv")
 
@@ -90,12 +90,19 @@ df_main.loc[df_main["caller"].str.len() == 5, "direction"] = "Internal" #set int
 df_main.loc[df_main["callee"].str.len() == 5, "direction"] = "Internal" #set internal callee
 df_main.loc[((df_main["callee"].isin(agent_dic.keys())) & (df_main["caller"].isin(agent_dic.keys()))), "direction"] = "Internal" #set internal agents
 
+condition1 = ((df_main["callee"].isin(agent_dic.keys())) & (df_main["caller"].isin(agent_dic.keys())))
+condition2 = (((df_main["callee"].str.len() <= 5)) | (df_main["caller"].str.len() <= 5))
+df_ext = df_main.drop(df_main[condition1 | condition2].index) #EXTERNAL DF
+df_int = df_main[condition1 | condition2] #INTERNAL DF
 
+#EXTERNAL DATAFRAME###########################################################
+df_ext["agent"] = ""
+df_ext.loc[df_ext["caller"].isin(agent_dic.keys()), "agent"] = df_ext.loc[df_ext["caller"].isin(agent_dic.keys())]["caller"] #send TB caller to agent col
+df_ext.loc[df_ext["callee"].isin(agent_dic.keys()), "agent"] = df_ext.loc[df_ext["callee"].isin(agent_dic.keys())]["callee"] #send TB callee to agent col
+df_ext.loc[df_ext["callee"].isin(agent_dic.keys()), "callee"] = df_ext.loc[df_ext["callee"].isin(agent_dic.keys())]["caller"] #send callee to caller col
+df_ext.drop(columns=["caller"], inplace=True)
+df_ext.rename(columns={"callee": "customer"}, inplace=True)
+df_ext.reset_index(drop=True, inplace=True)
 
-##########################################
-
-
-
-    
-
+######################################################################################
 

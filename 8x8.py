@@ -15,6 +15,8 @@ import matplotlib.cbook as cbook
 from matplotlib import pyplot as plt
 plt.style.use("seaborn")
 from numpy import inf
+from time import perf_counter
+from ns_contacts import *
 
 #MAIN DATAFRAME###############################################################
 
@@ -48,11 +50,7 @@ df_main["callee"] = df_main["callee"].apply(clean_agents)
 df_main["caller"] = df_main["caller"].apply(clean_agents)
 empty_agents()
 
-
-
 df_main = df_main[(df_main["caller"].isin(agent_dic.values())) | (df_main["callee"].isin(agent_dic.values()))].reset_index(drop=True) #drop calls without agents
-
-
 
 df_main.drop(df_main[df_main.answered != "Answered"].index, inplace=True) #drop unanswered rows
 
@@ -100,9 +98,18 @@ df_ext["agent"] = ""
 df_ext.loc[df_ext["caller"].isin(agent_dic.keys()), "agent"] = df_ext.loc[df_ext["caller"].isin(agent_dic.keys())]["caller"] #send TB caller to agent col
 df_ext.loc[df_ext["callee"].isin(agent_dic.keys()), "agent"] = df_ext.loc[df_ext["callee"].isin(agent_dic.keys())]["callee"] #send TB callee to agent col
 df_ext.loc[df_ext["callee"].isin(agent_dic.keys()), "callee"] = df_ext.loc[df_ext["callee"].isin(agent_dic.keys())]["caller"] #send callee to caller col
+
+df_ext["callee"] = df_ext["callee"].apply(lambda x: x[-9:]) #last digits phone
 df_ext.drop(columns=["caller"], inplace=True)
-df_ext.rename(columns={"callee": "customer"}, inplace=True)
+df_ext.rename(columns={"callee": "customer_phone"}, inplace=True)
 df_ext.reset_index(drop=True, inplace=True)
 
 ######################################################################################
+def add_customer_name():
+    df_ext["customer"] = ""
+    for index, row in df_contacts.iterrows():
+        df_ext.loc[df_ext["customer_phone"] == row["phone"], "customer"] = row["company"]
+add_company()
+
+
 

@@ -42,6 +42,9 @@ phone_cleaner(df_cust, "alt_phone")
 
 df_cust.drop(df_cust[(df_cust["phone"] == "") & (df_cust["email"] == "")].index, inplace=True) #drop w/o phone and email
 
-alt_rows = df_cust.loc[df_cust["alt_phone"] != ""].reset_index(drop=True).drop(columns=["alt_phone"])
+alt_rows = df_cust.loc[df_cust["alt_phone"] != ""].reset_index(drop=True)
+alt_rows["phone"] = alt_rows["alt_phone"].drop(columns=["alt_phone"])
+test2 = alt_rows.loc[alt_rows["company"] == "BMAT STEM Academy"]
 df_cust.drop(columns=["alt_phone"], inplace=True)
 df_cust = pd.concat([df_cust, alt_rows], ignore_index=True).reindex(columns=["company", "phone", "email", "id"]) #cust df with alt phones
+

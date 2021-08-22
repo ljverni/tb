@@ -107,9 +107,9 @@ df_ext.reset_index(drop=True, inplace=True)
 ######################################################################################
 def add_customer_name():
     df_ext["customer"] = ""
-    for index, row in df_contacts.iterrows():
+    for index, row in df_con.iterrows():
         df_ext.loc[df_ext["customer_phone"] == row["phone"], "customer"] = row["company"]
-add_company()
+add_customer_name()
 
 
-
+test = df_ext.loc[df_ext["customer"] == ""]

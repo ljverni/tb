@@ -15,12 +15,13 @@ import matplotlib.cbook as cbook
 from matplotlib import pyplot as plt
 plt.style.use("seaborn")
 from numpy import inf
-from ns_contacts import *
+# from ns_contacts import *
 
-df_cust = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Customers461.csv", usecols=["ID", "Name", "Company Name", "Phone", "Email", "Office Phone"], dtype=str)
+df_cust = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Customers461.csv", usecols=["ID", "Name", "Phone", "Email", "Office Phone"], dtype=str)
 
 df_cust.columns = df_cust.columns.str.lower()
-df_cust.rename(columns={"office phone": "alt_phone", "company name": "company"}, inplace=True)
+
+df_cust.rename(columns={"office phone": "alt_phone", "name": "company"}, inplace=True)
 
 # df_cust_original = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Customers461.csv", usecols=["ID", "Name", "Company Name", "Phone", "Email", "Office Phone"])
 
@@ -44,6 +45,4 @@ df_cust.drop(df_cust[(df_cust["phone"] == "") & (df_cust["email"] == "")].index,
 
 alt_rows = df_cust.loc[df_cust["alt_phone"] != ""].reset_index(drop=True).drop(columns=["alt_phone"])
 df_cust.drop(columns=["alt_phone"], inplace=True)
-df_cust = pd.concat([df_cust, alt_rows], ignore_index=True) #cust df with alt phones
-
-
+df_cust = pd.concat([df_cust, alt_rows], ignore_index=True).reindex(columns=["company", "phone", "email", "id"]) #cust df with alt phones

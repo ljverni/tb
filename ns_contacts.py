@@ -15,35 +15,35 @@ import matplotlib.cbook as cbook
 from matplotlib import pyplot as plt
 plt.style.use("seaborn")
 from numpy import inf
+from ns_customers import df_cust
 
+df_con = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Contacts484.csv")
 
-df_contacts = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Contacts484.csv")
+# df_con_original = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Contacts484.csv")
 
-# df_contacts_original = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Contacts484.csv")
+df_con.drop(df_con[df_con["Subsidiary"].str[-7:] != "Limited"].index, inplace=True) #Limited Subsidiary
+df_con.drop(columns=["Duplicate", "Category", "Subsidiary", "Subsidiary.1", "Login Access", "Job Title", "Name"], inplace=True)
+df_con.columns = df_con.columns.str.lower()
+df_con.drop(df_con[df_con["company"].isna()].index, inplace=True) #drop w/o company name
+df_con.drop(df_con[(df_con["phone"].isna()) | (df_con["email"].isna())].index, inplace=True) #drop no contact info
+df_con["id"] = df_con["company"] 
+df_con["id"] = df_con["id"].apply(lambda x: x.split(" ")[0]) #id column
+df_con["company"] = df_con["company"].apply(lambda x: " ".join(x.split(" ")[1:])) #remove id from company
 
-df_contacts.drop(df_contacts[df_contacts["Subsidiary"].str[-7:] != "Limited"].index, inplace=True) #Limited Subsidiary
-df_contacts.drop(columns=["Duplicate", "Category", "Subsidiary", "Subsidiary.1", "Login Access", "Job Title", "Name"], inplace=True)
-df_contacts.columns = df_contacts.columns.str.lower()
-df_contacts.drop(df_contacts[(df_contacts["company"].isna()) | (df_contacts["company"].str[0] != "C")].index, inplace=True) #drop w/o company name and non customers
-df_contacts.drop(df_contacts[(df_contacts["phone"].isna()) | (df_contacts["email"].isna())].index, inplace=True) #drop no contact info
-df_contacts["id"] = df_contacts["company"] 
-df_contacts["id"] = df_contacts["id"].apply(lambda x: x.split(" ")[0]) #id column
-df_contacts["company"] = df_contacts["company"].apply(lambda x: " ".join(x.split(" ")[1:])) #remove id from company
-
-def phone_cleaner():
-    df_contacts["phone"] = df_contacts["phone"].apply(lambda x: x.replace(" ", ""))
+def phone_cleaner(df, col):
+    df[col] = df[col].apply(lambda x: x.replace(" ", ""))
     symbols = ["+", "-", "(", ")", ".", "_", "+", r"*", "/", "|", "\\"]
     for s in symbols:
-        df_contacts["phone"] = df_contacts["phone"].apply(lambda x: x.replace(s, ""))
-    df_contacts["phone"] = df_contacts["phone"].apply(lambda x: x.split(re.findall(r"[\D]", x)[0], 1)[0] if len(re.findall(r"[\D]", x)) > 0 else x)
-    df_contacts["phone"] = df_contacts["phone"].apply(lambda x: x[-9:]) #last digits phone
-    df_contacts.reset_index(drop=True, inplace=True)
+        df[col] = df[col].apply(lambda x: x.replace(s, ""))
+    df[col] = df[col].apply(lambda x: x.split(re.findall(r"[\D]", x)[0], 1)[0] if len(re.findall(r"[\D]", x)) > 0 else x)
+    df[col] = df[col].apply(lambda x: x[-9:]) #last digits phone
+    df.reset_index(drop=True, inplace=True)
         
-phone_cleaner()
+phone_cleaner(df_con, "phone")
 
-df_contacts["company"] = df_contacts["company"].apply(lambda x: x.split("] ")[1] if len(x.split("] ")) > 1 else x) # remove company site
+df_con["company"] = df_con["company"].apply(lambda x: x.split("] ")[1] if len(x.split("] ")) > 1 else x) # remove company site
 
-
+df_con = pd.concat([df_con, df_cust], ignore_index=True)
 
 
 

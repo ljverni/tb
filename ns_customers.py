@@ -15,7 +15,6 @@ import matplotlib.cbook as cbook
 from matplotlib import pyplot as plt
 plt.style.use("seaborn")
 from numpy import inf
-# from ns_contacts import *
 
 df_cust = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Customers461.csv", usecols=["ID", "Name", "Phone", "Email", "Office Phone"], dtype=str)
 

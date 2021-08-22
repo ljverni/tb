@@ -21,11 +21,14 @@ df_con = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master
 
 # df_con_original = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Contacts384.csv")
 
-df_con.drop(df_con[df_con["Subsidiary"].str[-7:] != "Limited"].index, inplace=True) #Limited Subsidiary
+# df_con.drop(df_con[df_con["Subsidiary"].str[-7:] != "Limited"].index, inplace=True) #Limited Subsidiary
 df_con.drop(columns=["Duplicate", "Category", "Subsidiary", "Login Access", "Job Title", "Name"], inplace=True)
 df_con.columns = df_con.columns.str.lower().str.replace(" ", "_")
+
 df_con.drop(df_con[df_con["company"].isna()].index, inplace=True) #drop w/o company name
-df_con.drop(df_con[(df_con["phone"].isna()) | (df_con["email"].isna())].index, inplace=True) #drop no contact info
+
+df_con.drop(df_con[(df_con["phone"].isna()) & (df_con["email"].isna())].index, inplace=True) #drop no contact info
+
 df_con["id"] = df_con["company"] 
 df_con["id"] = df_con["id"].apply(lambda x: x.split(" ")[0]) #id column
 df_con["company"] = df_con["company"].apply(lambda x: " ".join(x.split(" ")[1:])) #remove id from company
@@ -61,7 +64,6 @@ df_con = pd.concat([df_con, mobile_rows, office_rows, address_rows], ignore_inde
 df_con["company"] = df_con["company"].apply(lambda x: x.split("] ")[1] if len(x.split("] ")) > 1 else x) # remove company site
 
 df_con = pd.concat([df_con, df_cust], ignore_index=True)
-
 
 
 

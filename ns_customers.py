@@ -16,16 +16,17 @@ from matplotlib import pyplot as plt
 plt.style.use("seaborn")
 from numpy import inf
 
-df_cust = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Customers461.csv", usecols=["ID", "Name", "Phone", "Email", "Office Phone"], dtype=str)
+df_cust = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Customers509.csv", usecols=["ID", "Name", "Phone", "Email", "Office Phone"], dtype=str)
 
 df_cust.columns = df_cust.columns.str.lower()
 
 df_cust.rename(columns={"office phone": "alt_phone", "name": "company"}, inplace=True)
 
-# df_cust_original = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Customers461.csv", usecols=["ID", "Name", "Company Name", "Phone", "Email", "Office Phone"])
+# df_cust_original = pd.read_csv(r"C:\Users\l.verni\Documents\Local-Repo\analytics\eu_master\data\Customers509.csv", usecols=["ID", "Name", "Company Name", "Phone", "Email", "Office Phone"])
 
 ###############################################################################################
 df_cust["id"] = df_cust["id"].apply(lambda x: x[:-7].replace(" ", "") if "[" in x else x) #clean id
+df_cust["id"] = df_cust["id"].apply(lambda x: x[:-1].replace(" ", "") if "[" in x else x) #clean id2
 df_cust = df_cust.replace(np.nan, "", regex=True) #remove nan
 
 def phone_cleaner(df, col):
@@ -44,7 +45,7 @@ df_cust.drop(df_cust[(df_cust["phone"] == "") & (df_cust["email"] == "")].index,
 
 alt_rows = df_cust.loc[df_cust["alt_phone"] != ""].reset_index(drop=True)
 alt_rows["phone"] = alt_rows["alt_phone"].drop(columns=["alt_phone"])
-test2 = alt_rows.loc[alt_rows["company"] == "BMAT STEM Academy"]
 df_cust.drop(columns=["alt_phone"], inplace=True)
 df_cust = pd.concat([df_cust, alt_rows], ignore_index=True).reindex(columns=["company", "phone", "email", "id"]) #cust df with alt phones
 
+testo = df_cust.loc[df_cust["id"] == "C3074772"]

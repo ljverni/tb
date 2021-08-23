@@ -94,9 +94,9 @@ df_ext = df_main.drop(df_main[condition1 | condition2].index) #EXTERNAL DF
 df_int = df_main[condition1 | condition2] #INTERNAL DF
 
 #EXTERNAL DATAFRAME###########################################################
-df_ext["agent"] = ""
-df_ext.loc[df_ext["caller"].isin(agent_dic.keys()), "agent"] = df_ext.loc[df_ext["caller"].isin(agent_dic.keys())]["caller"] #send TB caller to agent col
-df_ext.loc[df_ext["callee"].isin(agent_dic.keys()), "agent"] = df_ext.loc[df_ext["callee"].isin(agent_dic.keys())]["callee"] #send TB callee to agent col
+df_ext["sales_rep"] = ""
+df_ext.loc[df_ext["caller"].isin(agent_dic.keys()), "sales_rep"] = df_ext.loc[df_ext["caller"].isin(agent_dic.keys())]["caller"] #send TB caller to agent col
+df_ext.loc[df_ext["callee"].isin(agent_dic.keys()), "sales_rep"] = df_ext.loc[df_ext["callee"].isin(agent_dic.keys())]["callee"] #send TB callee to agent col
 df_ext.loc[df_ext["callee"].isin(agent_dic.keys()), "callee"] = df_ext.loc[df_ext["callee"].isin(agent_dic.keys())]["caller"] #send callee to caller col
 
 df_ext["callee"] = df_ext["callee"].apply(lambda x: x[-9:]) #last digits phone

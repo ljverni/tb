@@ -48,4 +48,6 @@ alt_rows["phone"] = alt_rows["alt_phone"].drop(columns=["alt_phone"])
 df_cust.drop(columns=["alt_phone"], inplace=True)
 df_cust = pd.concat([df_cust, alt_rows], ignore_index=True).reindex(columns=["company", "phone", "email", "id"]) #cust df with alt phones
 
-testo = df_cust.loc[df_cust["id"] == "C3074772"]
+
+
+

@@ -44,8 +44,8 @@ df_opp.drop(df_opp.loc[df_opp["date"].dt.year == 2020].index, inplace=True)
 df_opp["month"] = df_opp["date"].apply(lambda x: x.strftime("%B")) #add month col
 df_opp["date"] = df_opp["date"].apply(lambda x: x.date())
 
-df_opp.replace("Lost Customer", "Closed", inplace=True) #replace status
-df_opp.replace("Closed Lost", "Closed", inplace=True) #replace status
+df_opp.replace("Lost Customer", "Lost", inplace=True) #replace status
+df_opp.replace("Closed Lost", "Lost", inplace=True) #replace status
 df_opp.replace("Closed Won", "Won", inplace=True) #replace status
 
 df_opp.loc[df_opp["sales_rep_2"].isna(), "sales_rep_2"] = df_opp.loc[df_opp["sales_rep_2"].isna(), "sales_rep_1"] #remove nan from rep
@@ -61,13 +61,13 @@ df_opp.drop(df_opp.loc[~df_opp["sales_rep_1"].isin(rep_dict.keys())].index, inpl
 #ANALYTICS#####################################
 
 #OPEN DF
-open_byrep = df_opp.loc[(df_opp["status"] != "Won") & (df_opp["status"] != "Closed") & (df_opp["status"] != "Closed")].groupby(by=["sales_rep_1", "status", "month"], as_index=False).agg({"date": "count", "gp": "sum"}).rename(columns={"date": "count"})
-open_total = open_byrep.groupby(by=["status", "month"], as_index=False).agg({"gp": "sum", "count": "sum"})
+open_byrep = df_opp.loc[(df_opp["status"] != "Won") & (df_opp["status"] != "Lost")].groupby(by=["sales_rep_1", "status"], as_index=False).agg({"date": "count", "gp": "sum"}).rename(columns={"date": "count"})
+open_total = open_byrep.groupby(by=["status"], as_index=False).agg({"gp": "sum", "count": "sum"})
 open_total["sales_rep_1"] = "Total"
 open_byrep = pd.concat([open_byrep, open_total], ignore_index=True)
 
 #WON DF
-won_byrep = df_opp.loc[(df_opp["status"] == "Won") | (df_opp["status"] == "Closed") | (df_opp["status"] == "Closed")].groupby(by=["sales_rep_1", "status", "month"], as_index=False).agg({"date": "count", "gp": "sum"}).rename(columns={"date": "count"})
+won_byrep = df_opp.loc[(df_opp["status"] == "Won") | (df_opp["status"] == "Lost")].groupby(by=["sales_rep_1", "status", "month"], as_index=False).agg({"date": "count", "gp": "sum"}).rename(columns={"date": "count"})
 won_total = won_byrep.groupby(by=["status", "month"], as_index=False).agg({"gp": "sum", "count": "sum"})
 won_total["sales_rep_1"] = "Total"
 won_byrep = pd.concat([won_byrep, won_total], ignore_index=True)
@@ -91,9 +91,12 @@ def graphing(exec):
         ax.grid(b=False)
     
     #DF 
-    df_open = open_byrep.loc[(open_byrep["sales_rep_1"] == exec) & (open_byrep["month"] == current_month)].sort_values(by="count", ascending=True)
+    df_open = open_byrep.loc[open_byrep["sales_rep_1"] == exec].sort_values(by="count", ascending=True)
     df_won = won_byrep.loc[(won_byrep["sales_rep_1"] == exec) & (won_byrep["month"] == current_month)].sort_values(by="status", ascending=False)
-    df_byrep = opp_byrep.loc[opp_byrep["sales_rep_1"] == exec]
+    df_byrep = opp_byrep.loc[(opp_byrep["sales_rep_1"] == exec) & (opp_byrep["month"] == current_month)]
+    
+    df_won_previous = won_byrep.loc[(won_byrep["sales_rep_1"] == exec) & (won_byrep["month"] == previous_month)].sort_values(by="status", ascending=False)
+    df_byrep_previous = opp_byrep.loc[(opp_byrep["sales_rep_1"] == exec) & (opp_byrep["month"] == previous_month)]
 
     #CREATE FIGURE
     plt.style.use("seaborn")
@@ -150,6 +153,12 @@ def graphing(exec):
         legends = [f"{df_won.iloc[i]['status']}: {df_won.iloc[i]['count']} ({round(df_won.iloc[i]['count'] / df_won['count'].sum() *100, 2)}%)" for i in range(len(df_won))]
         ax2.legend(legends, loc="upper center", ncol=len(df_won),  fontsize=10, bbox_to_anchor=(0.5, 0.4))
         ax2.set_title(f"Won/Lost Opportunities", fontsize=13, loc="left") 
+    else:
+        ax2.barh(1, 10, height=.8, color=colors[-1])
+        ax2.set_xlim(0, 10)
+        ax2.set_ylim(0, 1.5)
+        ax2.legend(["0 Won/Lost Opportunities"], loc="upper center",  fontsize=10, bbox_to_anchor=(0.5, 0.4))
+        ax2.set_title(f"Won/Lost Opportunities", fontsize=13, loc="left") 
         
     #TEXT
     ax3 = fig.add_subplot(gs[1, 0:2])
@@ -158,53 +167,53 @@ def graphing(exec):
     
     if len(df_byrep["opportunity"]) > 0:
         total_opp = df_byrep["opportunity"].values[0]
+        total_gp = "{:,}".format(int(df_byrep["gp"].values[0]))
     else:
         total_opp = 0
+        total_gp = 0
+    if len(df_byrep_previous["opportunity"]) > 0:
+        total_opp_previous = df_byrep_previous["opportunity"].values[0]
+        total_gp_previous = "{:,}".format(int(df_byrep_previous["gp"].values[0]))
+    else:
+        total_opp_previous= 0
+        total_gp_previous = 0  
+    
     if len(df_won.loc[df_won["status"] == "Won"]["count"]) > 0:
         opp_won = df_won.loc[df_won["status"] == "Won"]["count"].values[0]
+        gp_won =  "{:,}".format(int(df_won.loc[df_won["status"] == "Won"]["gp"].values[0]))
     else:
         opp_won = 0
-    if len(df_won.loc[df_won["status"] == "Closed"]["count"]) > 0:
-        opp_lost = df_won.loc[df_won["status"] == "Closed"]["count"].values[0]
+        gp_won = 0
+    if len(df_won_previous.loc[df_won_previous["status"] == "Won"]["count"]) > 0:
+        opp_won_previous = df_won_previous.loc[df_won_previous["status"] == "Won"]["count"].values[0]
+        gp_won_previous =  "{:,}".format(int(df_won_previous.loc[df_won_previous["status"] == "Won"]["gp"].values[0]))
     else:
-        opp_lost = 0
+        opp_won_previous = 0
+        gp_won_previous = 0    
+    
     if df_open["count"].sum() > 0:
         opp_open = df_open["count"].sum()
+        gp_open = "{:,}".format(int(df_open["gp"].sum()))
     else:
         opp_open = 0
+        gp_open = 0
     
-    if
-    total_gp = "{:,}".format(int(df_byrep["gp"].values[0]))
-    gp_won =  "{:,}".format(int(df_won.loc[df_won["status"] == "Won"]["gp"].values[0]))
-    gp_lost = "{:,}".format(int(df_won.loc[df_won["status"] == "Closed"]["gp"].values[0]))
-    gp_open = "{:,}".format(int(df_open["gp"].sum()))
-    
-    # if opp_won == 0:
-    #     won_perc = 0
-    # else:
-    #     won_perc = int(opp_won / total_opp * 100)
-        
-    # if opp_lost == 0:
-    #     lost_perc = 0
-    # else:
-    #     lost_perc = int(opp_lost / total_opp * 100)
-    
-    # tot_lst= {total_opp: "Total Opportunities", opp_open: "Open Opportunities", f"£{total_gp}": "Last Month Profit", f"£{total_gp}": "Current Month Profit", f"{won_perc}%": "Won Opportunities", f"{lost_perc}%": "Lost Opportunities"}
-              
-    # hlocs = [.2, .2, .5, .5, .8, .8]
-    # vlocs = [1.4, .6, 1.4, .6, 1.4, .6]
+    tot_lst= {"Created": total_opp, "Last Month Created": f"{100}", "Open": opp_open, "Last Month Won": f"{opp_won_previous}", "Profit": f"£{gp_won}", "Last Month Profit": f"£{gp_won_previous}"}
+      
+    hlocs = [.2, .2, .5, .5, .8, .8]
+    vlocs = [1.4, .6, 1.4, .6, 1.4, .6]
     
     
-    # for i in range(len(tot_lst)):
-    #     ax3.text(hlocs[i], vlocs[i], list(tot_lst)[i], verticalalignment="center", horizontalalignment="center", color="#283747", fontsize=17, weight="bold")
-    #     ax3.text(hlocs[i], vlocs[i]-0.2, tot_lst[list(tot_lst)[i]], verticalalignment="center", horizontalalignment="center", color="#17202A", fontsize=12.5)
+    for i in range(len(tot_lst)):
+        ax3.text(hlocs[i], vlocs[i], tot_lst[list(tot_lst)[i]], verticalalignment="center", horizontalalignment="center", color="#283747", fontsize=17, weight="bold")
+        ax3.text(hlocs[i], vlocs[i]-0.2, list(tot_lst)[i], verticalalignment="center", horizontalalignment="center", color="#17202A", fontsize=12.5)
 
 
-    # ax4 = fig.add_subplot(gs[0, 3:5])
-    # ax4.set_yticklabels("")
-    # ax4.set_xticklabels("")
-    # ax4.set_facecolor("white")
-    # ax4.grid(b=False)   
+    ax4 = fig.add_subplot(gs[0, 3:5])
+    ax4.set_yticklabels("")
+    ax4.set_xticklabels("")
+    ax4.set_facecolor("white")
+    ax4.grid(b=False)   
     
     # ax5 = fig.add_subplot(gs[0, :])
     # ax5.set_yticklabels("")
@@ -220,8 +229,8 @@ def graphing(exec):
 
 
 
-for exec in open_byrep["sales_rep_1"].unique():
-    graphing(exec)
+# for exec in open_byrep["sales_rep_1"].unique():
+#     graphing(exec)
     
 
 
